@@ -206,6 +206,8 @@
                     this.dirty = true
                 },
                 init() {
+                    // https://stackoverflow.com/questions/27624935/extract-rsa-private-key-from-cryptico-js
+
                     this.Cryptico = (function (c) {
                         var parametersBigint = ["n", "d", "p", "q", "dmp1", "dmq1", "coeff"];
 
