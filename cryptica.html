@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cryptica - Criptico Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Cryptica</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#" @click="mode='encrypt'">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" @click="mode='keygen'">keygen</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container p-2" v-if="mode!=='keygen'" v-cloak>
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a :class="`nav-link ${mode=='encrypt' && 'active'}`" href="#" @click="toggle">Encrypt</a>
+                </li>
+                <li class="nav-item">
+                    <a :class="`nav-link ${mode=='decrypt' && 'active'}`" href="#" @click="toggle">Decrypt</a>
+                </li>
+            </ul>
+
+            <div class="container p-3" v-show="mode=='encrypt'">
+                <div class="mb-3">
+                    <label for="pubkey" class="form-label">PubKey</label>
+                    <input type="text" class="form-control" id="pubkey" placeholder="pubkey" v-model="pubkey">
+                </div>
+                <div class="mb-3">
+                    <label for="plaintext" class="form-label">Plain Text</label>
+                    <textarea class="form-control" id="plaintext" rows="3" v-model="plaintext"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" @click="encrypt">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                v-show="loading"></span>
+                            <span class="visually-hidden">Loading...</span>
+                            <span>{{ loading ? 'encrypting': 'encrypt'}}</span>
+                        </button>
+
+                    </div>
+                </div>
+
+                <div class="mb-3" v-show="dirty">
+                    <label for="encrypted1" class="form-label">Encrypted</label>
+                    <textarea class="form-control" id="encrypted1" rows="3" v-model="encrypted" rows="10"></textarea>
+                </div>
+            </div>
+
+            <div class="container p-3" v-show="mode=='decrypt'">
+                <div class="mb-3">
+                    <label for="secret" class="form-label">Private Key</label>
+                    <textarea class="form-control" id="secret" rows="5" v-model="secret"
+                        placeholder="paste json"></textarea>
+                </div>
+
+
+                <div class="mb-3">
+                    <label for="encrypted2" class="form-label">Encrypted Text</label>
+                    <textarea class="form-control" id="encrypted2" rows="3" v-model="encrypted" rows="10"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary" @click="decrypt">
+
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                v-show="loading"></span>
+                            <span class="visually-hidden">Loading...</span>
+                            <span>{{ loading ? 'decrypting': 'decrypt'}}</span>
+
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3" v-show="dirty">
+                    <label for="decrypted" class="form-label">decrypted</label>
+                    <textarea class="form-control" id="decrypted" rows="3" v-model="decrypted"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="container p-2" v-if="mode=='keygen'" v-cloak>
+            <div class="container p-3" v-show="mode=='keygen'">
+                <div class="row">
+                    <div class="col">
+                        <button type="button" class="btn btn-primary mx-2" @click="keygen">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"
+                                v-show="loading"></span>
+                            <span class="visually-hidden">Loading...</span>
+                            <span>{{ loading ? 'generating': 'generate'}} </span>
+                        </button>
+                        <a :href="keyobj ? keystr: ''" download="key.json"
+                            :class="`btn btn-primary ${keyobj || 'disabled'} mx-2`" role="button">Download Private
+                            Key</a>
+                        <a :href="keyobj ? pubkeystr: ''" download="key.pub.json"
+                            :class="`btn btn-primary ${keyobj || 'disabled'} mx-2`" role="button">Download Public
+                            Key</a>
+                    </div>
+                </div>
+                <div class="row" v-show="keyobj">
+                    <div class="col">
+                        <span>key pair generated</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cryptico/0.0.1343522940/cryptico.min.js"
+        integrity="sha512-C7GGRhFRn7F7hsLH1oCH2kX9ls61kx33wAgTZ6xJDwGvvgULcIZpwKqxG1+Kj/KOD2jWPxjNQYHi4BopPJPxVA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    mode: "encrypt",
+                    secret: "",
+                    pubkey: "",
+                    encrypted: "",
+                    decrypted: "",
+                    plaintext: "",
+                    dirty: false,
+                    bits: 2048,
+                    prvkey: undefined,
+                    keyobj: undefined,
+                    key: "",
+                    loading: false,
+                }
+            },
+            methods: {
+                keygen() {
+                    this.loading = true
+                    const passphrase = "passphrase"
+                    const key = cryptico.generateRSAKey(passphrase, this.bits);
+                    this.keyobj = key
+                    this.key = cryptico.privateKeyString(key)
+                    this.loading = false
+                },
+                toggle(e) {
+                    switch (e.target.innerText) {
+                        case "Encrypt":
+                            this.encrypted = ""
+                            this.decrypted = ""
+                            this.mode = "encrypt"
+                            this.dirty = false
+                            break
+
+                        case "Decrypt":
+                            this.encrypted = ""
+                            this.decrypted = ""
+                            this.mode = "decrypt"
+                            this.dirty = false
+                            break
+                    }
+                },
+                encrypt() {
+                    this.loading = true
+                    const encrypted = cryptico.encrypt(this.plaintext, this.pubkey);
+                    this.loading = false
+                    this.encrypted = encrypted.cipher
+                    this.dirty = true
+                },
+                decrypt() {
+                    this.loading = true
+                    this.prvkey = cryptico.privateKeyFromString(this.secret)
+                    const decrypted = cryptico.decrypt(this.encrypted, this.prvkey)
+                    this.loading = false
+                    this.decrypted = decrypted.plaintext
+                    this.dirty = true
+                },
+                init() {
+                    this.Cryptico = (function (c) {
+                        var parametersBigint = ["n", "d", "p", "q", "dmp1", "dmq1", "coeff"];
+
+                        c.privateKeyString = function (rsakey) {
+                            var keyObj = {};
+                            parametersBigint.forEach(function (parameter) {
+                                keyObj[parameter] = c.b16to64(rsakey[parameter].toString(16));
+                            });
+                            // e is 3 implicitly
+                            return JSON.stringify(keyObj);
+                        }
+                        c.privateKeyFromString = function (string) {
+                            var keyObj = JSON.parse(string);
+                            var rsa = new RSAKey();
+                            parametersBigint.forEach(function (parameter) {
+                                rsa[parameter] = parseBigInt(c.b64to16(keyObj[parameter].split("|")[0]), 16);
+                            });
+                            rsa.e = parseInt("03", 16);
+                            return rsa
+                        }
+                    })(cryptico)
+                }
+
+            },
+            computed: {
+                keystr() {
+                    return URL.createObjectURL(new Blob([(this.key)], { type: "application/json" }))
+                },
+                pubkeystr() {
+                    if (!this.keyobj) { return }
+                    return URL.createObjectURL(new Blob([cryptico.publicKeyString(this.keyobj)], { type: "application/json" }))
+                }
+            },
+            // watch: {
+
+            // },
+            mounted() {
+                this.init()
+            }
+        })
+
+        app.mount("#app")
+    </script>
+</body>
+
+</html>
